@@ -7,7 +7,7 @@ module.exports = {
   onVoiceStateUpdate: onVoiceStateUpdate
 };
 
-const CHANNEL_PREFIX = "🔑txt_";
+const CHANNEL_PREFIX = "🔑_";
 const BOT_ROLE_NAME = "BOT";
 
 async function onVoiceStateUpdate(before, after) {
@@ -31,16 +31,6 @@ async function onVoiceStateUpdate(before, after) {
       txtChannel = await chJoin(after.voiceChannel, after.user);
     }
     await chSendNotification(txtChannel, after.user);
-  }
-}
-
-async function txFind(voiceChannel) {
-  let chName = CHANNEL_PREFIX + voiceChannel.name;
-  let resultChannel = voiceChannel.guild.channels.find("name", chName);
-  if (resultChannel.type == "text") {
-    return resultChannel;
-  } else {
-    return null;
   }
 }
 
@@ -68,7 +58,7 @@ async function txChCreate(after) {
   try {
     let voiceChannel = after.voiceChannel;
     const guild = voiceChannel.guild;
-    let chName = CHANNEL_PREFIX + voiceChannel.name;
+    let chName = CHANNEL_PREFIX + voiceChannel.name + "_" + voiceChannel.id;
     console.log("createChannelName:" + chName);
     let overwrites = initOverWrites(guild, after.user);
     let result = guild.createChannel(chName, {
@@ -84,15 +74,11 @@ async function txChCreate(after) {
 
 function chFind(voiceChannel) {
   const guild = voiceChannel.guild;
-  let searchCondition = CHANNEL_PREFIX + voiceChannel.name.toLowerCase();
+  let searchCondition = voiceChannel.id;
   console.log("searchCondition:" + searchCondition);
-  return guild.channels.find("name", searchCondition);
-}
-
-function txtChFind(textChannel) {
-  const guild = textChannel.guild;
-  console.log("searchCondition:" + textChannel.name);
-  return guild.channels.find("name", textChannel.name.toLowerCase());
+  let result = guild.channels.find(val => val.name.endsWith(searchCondition));
+  console.log("result:"+result.name)
+  return result;
 }
 
 async function txChDelete(ch) {
