@@ -7,7 +7,7 @@ module.exports = {
   onVoiceStateUpdate: onVoiceStateUpdate
 };
 
-const CHANNEL_PREFIX = "🔑_";
+const CHANNEL_PREFIX = "🔑";
 const BOT_ROLE_NAME = "BOT";
 
 async function onVoiceStateUpdate(before, after) {
