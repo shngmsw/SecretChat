@@ -26,7 +26,9 @@ async function onVoiceStateUpdate(before, after) {
   if (after.voiceChannel != null) {
     let txtChannel;
     if (after.voiceChannel.members.size == 1) {
-      txtChannel = await txChCreate(after);
+      txtChannel = await txChCreate(after)
+        .then(console.log)
+        .catch(console.error);
     } else {
       txtChannel = await chJoin(after.voiceChannel, after.user);
     }
@@ -36,7 +38,7 @@ async function onVoiceStateUpdate(before, after) {
 
 function initOverWrites(guild, member) {
   console.log(member.id);
-  let botRole = guild.roles.find("name", BOT_ROLE_NAME);
+  let botRole = guild.roles.find(role => role.name === BOT_ROLE_NAME);
   let overwrites = [
     {
       id: guild.defaultRole.id,
@@ -55,21 +57,17 @@ function initOverWrites(guild, member) {
 }
 
 async function txChCreate(after) {
-  try {
-    let voiceChannel = after.voiceChannel;
-    const guild = voiceChannel.guild;
-    let chName = CHANNEL_PREFIX + voiceChannel.name + "_" + voiceChannel.id;
-    console.log("createChannelName:" + chName);
-    let overwrites = initOverWrites(guild, after.user);
-    let result = guild.createChannel(chName, {
-      parent: voiceChannel.parent,
-      type: "text",
-      permissionOverwrites: overwrites
-    });
-    return result;
-  } catch (err) {
-    console.log(err);
-  }
+  let voiceChannel = after.voiceChannel;
+  const guild = voiceChannel.guild;
+  let chName = CHANNEL_PREFIX + voiceChannel.name + "_" + voiceChannel.id;
+  console.log("createChannelName:" + chName);
+  let overwrites = initOverWrites(guild, after.user);
+  let result = guild.createChannel(chName, {
+    parent: voiceChannel.parent,
+    type: "text",
+    permissionOverwrites: overwrites
+  });
+  return result;
 }
 
 function chFind(voiceChannel) {
@@ -77,7 +75,7 @@ function chFind(voiceChannel) {
   let searchCondition = voiceChannel.id;
   console.log("searchCondition:" + searchCondition);
   let result = guild.channels.find(val => val.name.endsWith(searchCondition));
-  console.log("result:"+result.name)
+  console.log("result:" + result.name);
   return result;
 }
 
@@ -112,7 +110,7 @@ async function chExit(ch, user) {
 async function chSendNotification(ch, user) {
   const guild = ch.guild;
   guild.channels
-    .find("name", ch.name)
+    .find(channel => channel.name === ch.name)
     .send(`<@!${user.id}>`)
     .then(message => console.log(`Sent message: ${message.content}`))
     .catch(console.error);
@@ -123,5 +121,5 @@ async function chSendNotification(ch, user) {
     .setDescription(
       "ボイスチャンネルに参加している人だけに見えるチャンネルです。\n全員が退出すると削除されます。"
     );
-  guild.channels.find("name", ch.name).send(embed);
+  guild.channels.find(channel => channel.name === ch.name).send(embed);
 }
