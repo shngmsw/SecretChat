@@ -76,8 +76,9 @@ function chFind(voiceChannel) {
   const guild = voiceChannel.guild;
   let searchCondition = voiceChannel.id;
   console.log("searchCondition:" + searchCondition);
-  let result = guild.channels.find(val => val.name.endsWith(searchCondition));
-  console.log("result:"+result.name)
+  let result = guild.channels.find("name", ch.name).endsWith(searchCondition);
+  // let result = guild.channels.find(val => val.name.endsWith(searchCondition));
+  console.log("result:" + result.name)
   return result;
 }
 
