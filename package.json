@@ -10,7 +10,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "discord.js": "^11.5.1",
+    "discord.js": "11.5.1",
     "express": "^4.16.4",
     "request": "^2.88.0",
     "node-gyp": "^5.0.5",
