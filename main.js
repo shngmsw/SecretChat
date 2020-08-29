@@ -77,7 +77,7 @@ function chFind(voiceChannel) {
   let searchCondition = voiceChannel.id;
   // console.log("searchCondition:" + searchCondition);
   let result = guild.channels.find(val => val.name.endsWith(searchCondition));
-  // console.log("result:" + result.name)
+  console.log("result:"+result.name)
   return result;
 }
 
@@ -114,7 +114,7 @@ async function chSendNotification(ch, user) {
   guild.channels
     .find("name", ch.name)
     .send(`<@!${user.id}>`)
-    .then(message => console.log(`Sent message: ${message.content}`))
+    // .then(message => console.log(`Sent message: ${message.content}`))
     .catch(console.error);
 
   const embed = new Discord.RichEmbed()
