@@ -35,7 +35,7 @@ async function onVoiceStateUpdate(before, after) {
 }
 
 function initOverWrites(guild, member) {
-  console.log(member.id);
+  // console.log(member.id);
   let botRole = guild.roles.find("name", BOT_ROLE_NAME);
   let overwrites = [
     {
@@ -59,7 +59,7 @@ async function txChCreate(after) {
     let voiceChannel = after.voiceChannel;
     const guild = voiceChannel.guild;
     let chName = CHANNEL_PREFIX + voiceChannel.name + "_" + voiceChannel.id;
-    console.log("createChannelName:" + chName);
+    // console.log("createChannelName:" + chName);
     let overwrites = initOverWrites(guild, after.user);
     let result = guild.createChannel(chName, {
       parent: voiceChannel.parent,
@@ -75,7 +75,7 @@ async function txChCreate(after) {
 function chFind(voiceChannel) {
   const guild = voiceChannel.guild;
   let searchCondition = voiceChannel.id;
-  console.log("searchCondition:" + searchCondition);
+  // console.log("searchCondition:" + searchCondition);
   let result = guild.channels.find(val => val.name.endsWith(searchCondition));
   // console.log("result:" + result.name)
   return result;
