@@ -4,7 +4,7 @@ const client = new Discord.Client();
 const request = require("request");
 const privateChat = require('./main.js')
 
-client.login('NzE3NzM0MjY1MTQzNjg5MzE2.XteoHw.HLmPol8jwQiC9hFZLRZ-iIfYSXU');
+client.login(process.env.DISCORD_BOT_TOKEN);
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
   privateChat.onVoiceStateUpdate(oldMember, newMember);
