@@ -6,10 +6,11 @@ const privateChat = require('./main.js')
 
 client.login(process.env.DISCORD_BOT_TOKEN);
 
-client.on('voiceStateUpdate', (oldMember, newMember) => {
-  privateChat.onVoiceStateUpdate(oldMember, newMember);
-});
+// client.on('voiceStateUpdate', (oldMember, newMember) => {
+//   privateChat.onVoiceStateUpdate(oldMember, newMember);
+// });
+client.on('voiceStateUpdate', (oldState, newState) => privateChat.onVoiceStateUpdate(oldState, newState));
 
 client.on("ready", () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Logged in as ${client.user.tag}!`);
 });

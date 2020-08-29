@@ -10,61 +10,54 @@ module.exports = {
 const CHANNEL_PREFIX = "🔑";
 const BOT_ROLE_NAME = "BOT";
 
-async function onVoiceStateUpdate(before, after) {
-  if (before.voiceChannelID === after.voiceChannelID) {
+async function onVoiceStateUpdate(oldState, newState) {
+  if (oldState.channelID === newState.channelID) {
     return;
   }
 
-  if (before.voiceChannel != null) {
-    if (before.voiceChannel.members.size == 0) {
-      await txChDelete(before.voiceChannel);
+  if (oldState.channelID != null) {
+    const oldChannel = oldState.guild.channels.cache.get(oldState.channelID);
+    if (oldChannel.members.size == 0) {
+      await txChDelete(oldChannel);
     } else {
-      await chExit(before.voiceChannel, before.user);
+      await chExit(oldChannel, newState.member);
     }
   }
 
-  if (after.voiceChannel != null) {
+  if (newState.channelID != null) {
     let txtChannel;
-    if (after.voiceChannel.members.size == 1) {
-      txtChannel = await txChCreate(after);
+    const newChannel = newState.guild.channels.cache.get(newState.channelID);
+    if (newChannel.members.size == 1) {
+      txtChannel = await txChCreate(newChannel, newState.member);
     } else {
-      txtChannel = await chJoin(after.voiceChannel, after.user);
+      txtChannel = await chJoin(newChannel, newState.member);
     }
-    await chSendNotification(txtChannel, after.user);
+    await chSendNotification(txtChannel, newState.member);
   }
 }
 
-function initOverWrites(guild, member) {
-  // console.log(member.id);
-  let botRole = guild.roles.find("name", BOT_ROLE_NAME);
-  let overwrites = [
-    {
-      id: guild.defaultRole.id,
-      deny: ["VIEW_CHANNEL"]
-    },
-    {
-      id: member.id,
-      allow: ["VIEW_CHANNEL"]
-    },
-    {
-      id: botRole.id,
-      allow: ["VIEW_CHANNEL"]
-    }
-  ];
-  return overwrites;
-}
-
-async function txChCreate(after) {
+async function txChCreate(voiceChannel, voiceJoinedMember) {
   try {
-    let voiceChannel = after.voiceChannel;
     const guild = voiceChannel.guild;
     let chName = CHANNEL_PREFIX + voiceChannel.name + "_" + voiceChannel.id;
-    // console.log("createChannelName:" + chName);
-    let overwrites = initOverWrites(guild, after.user);
-    let result = guild.createChannel(chName, {
+    let botRole = guild.roles.cache.find(val => val.name === BOT_ROLE_NAME);
+    let result = await guild.channels.create(chName, {
       parent: voiceChannel.parent,
       type: "text",
-      permissionOverwrites: overwrites
+      permissionOverwrites: [
+        {
+          id: guild.roles.everyone.id,
+          deny: ["VIEW_CHANNEL"]
+        },
+        {
+          id: voiceJoinedMember.id,
+          allow: ["VIEW_CHANNEL"]
+        },
+        {
+          id: botRole.id,
+          allow: ["VIEW_CHANNEL"]
+        }
+      ],
     });
     return result;
   } catch (err) {
@@ -75,9 +68,7 @@ async function txChCreate(after) {
 function chFind(voiceChannel) {
   const guild = voiceChannel.guild;
   let searchCondition = voiceChannel.id;
-  // console.log("searchCondition:" + searchCondition);
-  let result = guild.channels.find(val => val.name.endsWith(searchCondition));
-  console.log("result:"+result.name)
+  let result = guild.channels.cache.find(val => val.name.endsWith(searchCondition));
   return result;
 }
 
@@ -93,7 +84,7 @@ async function txChDelete(ch) {
 async function chJoin(ch, user) {
   let target = await chFind(ch);
   if (target != null) {
-    target.overwritePermissions(user, { VIEW_CHANNEL: true });
+    target.updateOverwrite(user, { VIEW_CHANNEL: true });
     return target;
   } else {
     console.log("チャンネルがないンゴ");
@@ -103,7 +94,7 @@ async function chJoin(ch, user) {
 async function chExit(ch, user) {
   let target = await chFind(ch);
   if (target != null) {
-    target.overwritePermissions(user, { VIEW_CHANNEL: false });
+    target.updateOverwrite(user, { VIEW_CHANNEL: false });
   } else {
     console.log("チャンネルがないンゴ");
   }
@@ -111,17 +102,15 @@ async function chExit(ch, user) {
 
 async function chSendNotification(ch, user) {
   const guild = ch.guild;
-  guild.channels
-    .find("name", ch.name)
-    .send(`<@!${user.id}>`)
-    // .then(message => console.log(`Sent message: ${message.content}`))
+  const sendChannel = await guild.channels.cache.find(val => val.name === ch.name);
+  await sendChannel.send(`<@!${user.id}>`)
     .catch(console.error);
 
-  const embed = new Discord.RichEmbed()
+  const embed = new Discord.MessageEmbed()
     .setTitle("プライベートチャットに参加しました。")
-    .setAuthor("To " + user.username)
+    .setAuthor("To " + user.displayName)
     .setDescription(
       "ボイスチャンネルに参加している人だけに見えるチャンネルです。\n全員が退出すると削除されます。"
     );
-  guild.channels.find("name", ch.name).send(embed);
+  sendChannel.send(embed);
 }
