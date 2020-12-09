@@ -103,14 +103,20 @@ async function chExit(ch, user) {
 async function chSendNotification(ch, user) {
   const guild = ch.guild;
   const sendChannel = await guild.channels.cache.find(val => val.name === ch.name);
-  await sendChannel.send(`<@!${user.id}>`)
-    .catch(console.error);
 
-  const embed = new Discord.MessageEmbed()
-    .setTitle("プライベートチャットに参加しました。")
-    .setAuthor("To " + user.displayName)
-    .setDescription(
-      "ボイスチャンネルに参加している人だけに見えるチャンネルです。\n全員が退出すると削除されます。"
-    );
-  sendChannel.send(embed);
+  // すでにチャンネルにメンションがあるなら送信しない
+  let messages = await ch.messages.fetch({ limit: 100 }).catch(console.error);
+  let list = await messages.filter(m => m.content === '<@!' + user.id + '>')
+  if (list.size === 0) {
+    await sendChannel.send(`<@!${user.id}>`)
+      .catch(console.error);
+
+    const embed = new Discord.MessageEmbed()
+      .setTitle("プライベートチャットに参加しました。")
+      .setAuthor("To " + user.displayName)
+      .setDescription(
+        "ボイスチャンネルに参加している人だけに見えるチャンネルです。\n全員が退出すると削除されます。"
+      );
+    sendChannel.send(embed);
+  }
 }
